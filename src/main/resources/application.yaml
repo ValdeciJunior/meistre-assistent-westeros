@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: meistre-assistant
+
+  # 1. Configuração do Banco de Dados Relacional e JPA
+  datasource:
+    url: jdbc:postgresql://localhost:5432/meistre_db
+    username: meistre_user
+    password: meistre_password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false # Mude para true se quiser ver as queries no console
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # 2. ALTA CONCORRÊNCIA: Ativação das Virtual Threads do Java 21
+  threads:
+    virtual:
+      enabled: true
+
+  # 3. Configuração do Spring AI
+  ai:
+    # Conexão com o Ollama (LLM Local)
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: llama3
+          temperature: 0.4 # Deixa o Meistre mais preciso e menos "criativo"
+
+    # Conexão com o PGVector (Banco de Vetores do RAG)
+    vectorstore:
+      pgvector:
+        table-name: meistre_knowledge_vectors
+        embedding-dimension-override: 4096 # Dimensão padrão dos embeddings do Llama 3
+
+# 4. Configuração do Resilience4j (Circuit Breaker) para proteção contra sobrecarga
+resilience4j:
+  circuitbreaker:
+    instances:
+      meistreChat:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        failure-rate-threshold: 50 # Abre o circuito se 50% das últimas 10 chamadas falharem
+        wait-duration-in-open-state: 10000 # Espera 10 segundos antes de tentar reabrir
+        slow-call-rate-threshold: 75 # Abre o circuito se 75% das chamadas forem lentas
+        slow-call-duration-threshold: 30000 # Considera lenta uma resposta que demorar mais de 30s
