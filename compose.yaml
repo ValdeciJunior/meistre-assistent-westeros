@@ -3,7 +3,7 @@ services:
     image: pgvector/pgvector:pg16
     container_name: meistre-postgres
     ports:
-      - '5432:5432'
+      - '5434:5432'
     environment:
       POSTGRES_USER: meistre_user
       POSTGRES_PASSWORD: meistre_password
@@ -18,6 +18,9 @@ services:
       - '11434:11434'
     volumes:
       - meistre_ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_ORIGINS=*
 
 volumes:
   meistre_postgres_data:
